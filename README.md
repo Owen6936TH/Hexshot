@@ -2,8 +2,20 @@
 มหาวิทยาลัยกรุงเทพ
 รายวิชา GI342 Game Design 2
 
-สามาชิกกลุ่ม
+=== สามาชิกกลุ่ม ===
 1. 1660706563 พัทธนพล ธนวิบูลย์ชัย Game Director / Programmer
 2. 1660708270 ดนุเดช อภิธรรมวงศ์ Narrative Designer
 3. 1650901125 ศักย์ศรณ์ จันทร์สว่าง Gameplay UX/UI Designer
-4. 1660707926 อิศม์เดช อินใย
+4. 1660707926 อิศม์เดช อินใย 3D 3D Modeler
+
+=== Marketplace ===
+Steam Submission Fee (3299 บาท)
+https://partner.steamgames.com/
+
+
+
+=== 3RD Party Asset ===
+
+--- Image ---
+Button Prompt
+https://thoseawesomeguys.com/prompts/
