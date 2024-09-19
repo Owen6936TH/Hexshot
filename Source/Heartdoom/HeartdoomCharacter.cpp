@@ -21,7 +21,7 @@ void AHeartdoomCharacter::Tick(float DeltaTime)
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, (FString::Printf(TEXT("BufferTimeLeft: %f"), BufferTimeLeft)));
 	if (BufferTimeLeft > 0 || CoyoteTimeLeft > 0)
 	{
-		if (BufferTimeLeft > 0 && HeartdoomCharacterMovementComponent->IsMovementMode(MOVE_Walking))
+		if (BufferTimeLeft > 0 && (HeartdoomCharacterMovementComponent->IsMovementMode(MOVE_Walking) || HeartdoomCharacterMovementComponent->IsCustomMovementMode(CMOVE_Climb)))
 		{
 			Super::Jump();
 			BufferTimeLeft = 0;
