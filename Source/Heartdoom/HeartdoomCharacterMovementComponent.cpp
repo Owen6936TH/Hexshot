@@ -803,7 +803,7 @@ bool UHeartdoomCharacterMovementComponent::TryMantle()
 	if (!HeartdoomCharacterOwner->HasEnoughStamina()) return false;
 
 	// Helper Variables
-	FVector BaseLoc = UpdatedComponent->GetComponentLocation() + FVector::DownVector * CapHH();
+	FVector BaseLoc = UpdatedComponent->GetComponentLocation() + (FVector::DownVector * CapHH());
 	BaseLoc.Z = round(BaseLoc.Z / 25) * 25;
 	if (IsMovementMode(MOVE_Swimming))
 	{
@@ -837,7 +837,7 @@ bool UHeartdoomCharacterMovementComponent::TryMantle()
 			HasHitWall = true;
 			PreviousNormal = std::abs(FrontHit.Normal.X + FrontHit.Normal.Y);
 			LastTraceDistance = FrontHit.bBlockingHit ? FrontHit.Distance : 200;
-			if (i >= 7 || (FrontHit.bBlockingHit ? FrontHit.Distance : 200) <= 0) {
+			if (i >= (MantleReachHeight / 25) || (FrontHit.bBlockingHit ? FrontHit.Distance : 200) <= 0) {
 				return false;
 			}
 			if (!(PreviousNormal < 0.6 && PreviousNormal > .05)) {
@@ -972,7 +972,7 @@ bool UHeartdoomCharacterMovementComponent::TryMantle()
 					}*/
 				}
 			}
-		} else if (i >= MantleReachHeight / 25) {
+		} else if (i >= (MantleReachHeight / 25)) {
 			return false;
 		} else
 		{

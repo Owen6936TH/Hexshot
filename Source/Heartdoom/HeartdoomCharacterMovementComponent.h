@@ -74,7 +74,7 @@ class HEARTDOOM_API UHeartdoomCharacterMovementComponent : public UCharacterMove
 	UPROPERTY(EditDefaultsOnly) float Slide_BrakingDeceleration = 1000.f;
 
 	UPROPERTY(EditDefaultsOnly) float MantleCoolDownTime = 1;
-	UPROPERTY(EditDefaultsOnly) float MantleMaxDistance = 125;
+	UPROPERTY(EditDefaultsOnly) float MantleMaxDistance = 150;
 	UPROPERTY(EditDefaultsOnly) float MantleReachHeight = 175;
 	UPROPERTY(EditDefaultsOnly) UAnimMontage* MantleMontage;
 	UPROPERTY(EditDefaultsOnly) UAnimMontage* TransitionMantleMontage;
