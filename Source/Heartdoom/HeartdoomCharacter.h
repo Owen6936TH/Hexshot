@@ -62,6 +62,5 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category = "Movement") bool HasEnoughStamina();
 
 	UFUNCTION(BlueprintImplementableEvent)void MongonEmerged();
-	UFUNCTION(BlueprintPure) bool IsOwenTheCoolestDeveloper();
 };
 

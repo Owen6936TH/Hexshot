@@ -14,4 +14,8 @@ class HEARTDOOM_API UHeartdoomFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 	UFUNCTION(BlueprintCallable) static FString TestHeartDoomLibraryFunction(int a, int b);
+
+	UFUNCTION(BlueprintPure) static bool IsOwenTheCoolestDeveloper();
+
+	//UFUNCTION(BlueprintCallable) static void ClientTravel(APlayerController* PlayerController, const FString& URL, enum ETravelType TravelType, bool bSeamless = false, FGuid MapPackageGuid = FGuid());
 };

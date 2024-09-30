@@ -145,11 +145,6 @@ FCollisionQueryParams AHeartdoomCharacter::GetIgnoreCharacterParams() const
 	return Params;
 }
 
-bool AHeartdoomCharacter::IsOwenTheCoolestDeveloper()
-{
-	return true;
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 // Input
