@@ -17,7 +17,7 @@ enum ECustomMovementMode
 
 UCLASS()
 
-class HEARTDOOM_API UHeartdoomCharacterMovementComponent : public UCharacterMovementComponent
+class HEXSHOT_API UHeartdoomCharacterMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
 

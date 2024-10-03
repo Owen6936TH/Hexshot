@@ -7,7 +7,7 @@
 #include "HeartdoomGameInstance.generated.h"
 
 UCLASS()
-class HEARTDOOM_API UHeartdoomGameInstance : public UGameInstance
+class HEXSHOT_API UHeartdoomGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 	

@@ -10,7 +10,7 @@
  * 
  */
 UCLASS()
-class HEARTDOOM_API UHeartdoomFunctionLibrary : public UBlueprintFunctionLibrary
+class HEXSHOT_API UHeartdoomFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 	UFUNCTION(BlueprintCallable) static FString TestHeartDoomLibraryFunction(int a, int b);

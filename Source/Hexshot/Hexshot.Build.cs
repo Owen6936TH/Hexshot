@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class Heartdoom : ModuleRules
+public class Hexshot : ModuleRules
 {
-	public Heartdoom(ReadOnlyTargetRules Target) : base(Target)
+	public Hexshot(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 

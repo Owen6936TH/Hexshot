@@ -3,13 +3,13 @@
 using UnrealBuildTool;
 using System.Collections.Generic;
 
-public class HeartdoomTarget : TargetRules
+public class HexshotEditorTarget : TargetRules
 {
-	public HeartdoomTarget(TargetInfo Target) : base(Target)
+	public HexshotEditorTarget(TargetInfo Target) : base(Target)
 	{
-		Type = TargetType.Game;
+		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_4;
-		ExtraModuleNames.Add("Heartdoom");
+		ExtraModuleNames.Add("Hexshot");
 	}
 }
