@@ -1,6 +1,7 @@
-Hexshot : Paradise Lost
-กลุ่ม หมาป่าคุยกัน มหาวิทยาลัยกรุงเทพ
+Hexshot : Paradise Lost\
+กลุ่ม หมาป่าคุยกัน มหาวิทยาลัยกรุงเทพ (Bangkok University)\
 รายวิชา GI342 Game Design 2
+
 
 === สามาชิกกลุ่ม ===
 
@@ -9,17 +10,17 @@ Hexshot : Paradise Lost
 3. 1650901125 ศักย์ศรณ์ จันทร์สว่าง Gameplay UX/UI Designer
 4. 1660707926 อิศม์เดช อินใย 3D 3D Modeler
 
-=== Marketplace ===
+=== 3RD Party Asset ===\
+--- Marketplace ---
 
-Steam Submission Fee (3299 บาท)
-https://partner.steamgames.com/
+Steam Submission Fee (3299 บาท)\
+https://partner.steamgames.com
 
-NIAGARA : Shooter VFX Pack (1499 บาท)
+NIAGARA : Shooter VFX Pack (1499 บาท)\
 https://www.unrealengine.com/marketplace/en-US/product/b3d742fe505344f2976d3e191a75ffc0
 
 
-=== 3RD Party Asset ===
-
 --- Image ---
-Button Prompt
-https://thoseawesomeguys.com/prompts/
+
+Button Prompt\
+https://thoseawesomeguys.com/prompts
