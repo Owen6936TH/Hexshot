@@ -86,6 +86,7 @@ class HEXSHOT_API UHeartdoomCharacterMovementComponent : public UCharacterMoveme
 
 	// Replication
 	UPROPERTY(ReplicatedUsing = OnRep_Mantle) bool Proxy_bMantle;
+	UFUNCTION(NetMulticast, Reliable) void Multicast_TransitionMantle(float playRate);
 
 	//Transient
 	UPROPERTY(Transient) AHeartdoomCharacter * HeartdoomCharacterOwner;
@@ -179,7 +180,8 @@ private:
 	//Glide
 	void PhysGlide(float deltaTime, int32 Iterations);
 
-
+	virtual void PhysicsVolumeChanged(APhysicsVolume* NewVolume) override;
+	
 	// Helpers
 	bool IsServer() const;
 	float CapR() const;

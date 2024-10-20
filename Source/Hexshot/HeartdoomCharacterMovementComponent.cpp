@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "DrawDebugHelpers.h"
+#include "GameFramework/PhysicsVolume.h"
 
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -260,14 +261,23 @@ void UHeartdoomCharacterMovementComponent::PhysCustom(float deltaTime, int32 Ite
 void UHeartdoomCharacterMovementComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME_CONDITION(UHeartdoomCharacterMovementComponent, Proxy_bMantle, COND_SkipOwner)
+
+	DOREPLIFETIME_CONDITION(UHeartdoomCharacterMovementComponent, Proxy_bMantle, COND_SkipOwner)}
+
+
+void UHeartdoomCharacterMovementComponent::Multicast_TransitionMantle_Implementation(float playRate)
+{
+	if (!CharacterOwner->IsLocallyControlled())
+	{
+		CharacterOwner->PlayAnimMontage(TransitionMantleMontage, playRate);
+		duringMantle = true;
+	}
 }
 
 void UHeartdoomCharacterMovementComponent::OnRep_Mantle()
 {
 	CharacterOwner->PlayAnimMontage(MantleMontage);
 	duringMantle = true;
-
 }
 
 void UHeartdoomCharacterMovementComponent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
@@ -331,7 +341,7 @@ void UHeartdoomCharacterMovementComponent::UpdateCharacterStateBeforeMovement(fl
 	}
 
 	//Try Climb
-	if (Safe_bWantsToClimb && !bWantsToCrouch && (IsMovementMode(MOVE_Walking) || IsMovementMode(MOVE_Falling)|| IsCustomMovementMode(CMOVE_Glide)))
+	if (Safe_bWantsToClimb && !bWantsToCrouch && (IsMovementMode(MOVE_Walking) || IsMovementMode(MOVE_Swimming) || IsMovementMode(MOVE_Falling) || IsCustomMovementMode(CMOVE_Glide)))
 	{
 		if (TryClimb())
 		{
@@ -339,17 +349,46 @@ void UHeartdoomCharacterMovementComponent::UpdateCharacterStateBeforeMovement(fl
 		}
 		else
 		{
+			SLOG("ClimbEnd1");
 			Safe_bWantsToClimb = false;
-			SetMovementMode(MOVE_Walking);
+			const FVector OldLocation = UpdatedComponent->GetComponentLocation();
+			FHitResult FloorHit;
+			GetWorld()->LineTraceSingleByProfile(FloorHit, OldLocation, OldLocation + FVector::DownVector * CapHH() * 1.2f, "BlockAll", HeartdoomCharacterOwner->GetIgnoreCharacterParams());
+			if (CanEverSwim() && IsInWater())
+			{
+				SetMovementMode(DefaultWaterMovementMode);
+			}
+			else if (FloorHit.IsValidBlockingHit())
+			{
+				SetMovementMode(MOVE_Walking);
+			}
+			else
+			{
+				SetMovementMode(MOVE_Walking);
+			}
 		}
 		//Safe_bWantsToClimb = false;
 	}
 	else if (CharacterOwner->IsLocallyControlled() || IsServer())
 	{
-		if ((!Safe_bWantsToClimb && IsCustomMovementMode(CMOVE_Climb)) || (Safe_bWantsToClimb && (IsMovementMode(MOVE_Swimming) || (IsMovementMode(MOVE_Walking) && bWantsToCrouch))))
+		if ((!Safe_bWantsToClimb && IsCustomMovementMode(CMOVE_Climb)))
 		{
 			Safe_bWantsToClimb = false;
-			SetMovementMode(MOVE_Walking);
+			const FVector OldLocation = UpdatedComponent->GetComponentLocation();
+			FHitResult FloorHit;
+			GetWorld()->LineTraceSingleByProfile(FloorHit, OldLocation, OldLocation + FVector::DownVector * CapHH() * 1.2f, "BlockAll", HeartdoomCharacterOwner->GetIgnoreCharacterParams());
+			if (CanEverSwim() && IsInWater())
+			{
+				SetMovementMode(DefaultWaterMovementMode);
+			}
+			else if (FloorHit.IsValidBlockingHit())
+			{
+				SetMovementMode(MOVE_Walking);
+			}
+			else
+			{
+				SetMovementMode(MOVE_Walking);
+			}
 			
 		}
 	}
@@ -404,7 +443,7 @@ void UHeartdoomCharacterMovementComponent::UpdateCharacterStateBeforeMovement(fl
 				SetMovementMode(MOVE_Flying);
 				TransitionRMS_ID = ApplyRootMotionSource(TransitionRMS);
 				TransitionName = "MantleEnd";
-				//if (IsServer()) Proxy_bMantle = !Proxy_bMantle;
+				if (IsServer()) Proxy_bMantle = !Proxy_bMantle;
 				//duringMantle = true;
 				//------
 				CharacterOwner->PlayAnimMontage(TransitionQueuedMontage, 1);
@@ -416,8 +455,6 @@ void UHeartdoomCharacterMovementComponent::UpdateCharacterStateBeforeMovement(fl
 		}
 		else if (TransitionName == "MantleEnd") {
 			Velocity = FVector::ZeroVector;
-			//Velocity.X = 0;
-			//Velocity.Y = 0;
 			SetMovementMode(MOVE_Falling);
 			HeartdoomCharacterOwner->SetActorEnableCollision(true);
 			HeartdoomCharacterOwner->CoyoteTimeLeft = 0;
@@ -549,6 +586,15 @@ void UHeartdoomCharacterMovementComponent::EnterSlide()
 
 void UHeartdoomCharacterMovementComponent::ExitSlide()
 {
+	if (CanEverSwim() && IsInWater())
+	{
+		SetMovementMode(DefaultWaterMovementMode);
+	}
+	else
+	{
+		SetMovementMode(MOVE_Walking);
+	}
+
 	isSliding = false;
 	if (!bWantsToCrouch)
 	{
@@ -564,13 +610,6 @@ void UHeartdoomCharacterMovementComponent::ExitSlide()
 	else if (bWantsToCrouch && !IsCrouching() && !UHeartdoomCharacterMovementComponent::IsCrouching() && CanCrouchInCurrentState())
 	{
 		Crouch(false);
-	}
-	if (IsSwimming())
-	{
-		SetMovementMode(MOVE_Swimming);
-	} else
-	{
-		SetMovementMode(MOVE_Walking);
 	}
 	
 	reachDesireSlideSpeed = false;
@@ -652,9 +691,10 @@ void UHeartdoomCharacterMovementComponent::PhysSlide(float deltaTime, int32 Iter
 				StartNewPhysics(remainingTime, Iterations);
 				return;
 			}
-			else if (IsSwimming()) //just entered water
+			else if (CanEverSwim() && IsInWater()) //just entered water
 			{
-				StartSwimming(OldLocation, OldVelocity, timeTick, remainingTime, Iterations);
+				//StartSwimming(OldLocation, OldVelocity, timeTick, remainingTime, Iterations);
+				SetMovementMode(DefaultWaterMovementMode);
 				return;
 			}
 		}
@@ -738,9 +778,10 @@ void UHeartdoomCharacterMovementComponent::PhysSlide(float deltaTime, int32 Iter
 			}
 
 			// check if just entered water
-			if (IsSwimming())
+			if (CanEverSwim() && IsInWater())
 			{
-				StartSwimming(OldLocation, Velocity, timeTick, remainingTime, Iterations);
+				SetMovementMode(DefaultWaterMovementMode);
+				//StartSwimming(OldLocation, Velocity, timeTick, remainingTime, Iterations);
 				return;
 			}
 
@@ -780,11 +821,12 @@ void UHeartdoomCharacterMovementComponent::PhysSlide(float deltaTime, int32 Iter
 			ExitSlide();
 			return;
 		}
-		else if (UpdatedComponent->GetComponentLocation() == OldLocation)
+		/*else if (UpdatedComponent->GetComponentLocation() == OldLocation)
 		{
+			SLOG("too near old location");
 			remainingTime = 0.f;
 			break;
-		}
+		}*/
 
 	}
 
@@ -877,7 +919,8 @@ bool UHeartdoomCharacterMovementComponent::TryMantle()
 			}
 
 			bool passEdgeCheck = false;
-			for (size_t j = 0; j < (MantleMaxDistance / 25) - 1; j++)
+			int reachPoint = (FrontHit.bBlockingHit ? FrontHit.Distance : 200) / 25;
+			for (size_t j = 0; j < reachPoint - 1; j++)
 			{
 				FVector StartRayZPos = BaseLoc;
 				StartRayZPos.Z = StartRayZPos.Z + (i * 25) + 51;
@@ -887,37 +930,6 @@ bool UHeartdoomCharacterMovementComponent::TryMantle()
 				MantleGoalPos = StartRayZPos + (Fwd * 50) + FVector(0, 0, HeartdoomCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
 
 				//POINT(StartRayZPos, FColor::Blue);
-
-				/*FVector StartLocation = MantleGoalPos;
-				FVector EndLocation = StartLocation;
-				float CapsuleRadius = HeartdoomCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleRadius();
-				float CapsuleHalfHeight = HeartdoomCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-				ETraceTypeQuery TraceChannel = TraceTypeQuery1;
-				bool bTraceComplex = false;
-				TArray<AActor*> ActorsToIgnore;
-				FHitResult HitResult;
-
-				bool bHit = UKismetSystemLibrary::CapsuleTraceSingle(
-					GetWorld(),
-					StartLocation,
-					EndLocation,
-					CapsuleRadius,
-					CapsuleHalfHeight,
-					TraceChannel,
-					bTraceComplex,
-					ActorsToIgnore,
-					EDrawDebugTrace::ForDuration,
-					HitResult,
-					true,
-					FLinearColor::Red,
-					FLinearColor::Green,
-					5.0f
-				);
-				if (!bHit)
-				{
-					MantleReady = true;
-					break;
-				}*/
 
 				if (!passEdgeCheck) {
 					FHitResult HitResult;
@@ -958,18 +970,6 @@ bool UHeartdoomCharacterMovementComponent::TryMantle()
 						MantleReady = true;
 						break;
 					}
-
-					/*FHitResult HitResult;
-					GetWorld()->LineTraceSingleByProfile(HitResult, StartRayZPos, StartRayZPos - FVector(0, 0, 100), "BlockAll", Params);
-					StartRayZPos = (HitResult.bBlockingHit ? HitResult.ImpactPoint : HitResult.TraceEnd) + FVector(0, 0, 1);
-					POINT(StartRayZPos, FColor::Blue);
-					GetWorld()->LineTraceSingleByProfile(HitResult, StartRayZPos, StartRayZPos + FVector(0, 0, 200), "BlockAll", Params);
-					if ((HitResult.bBlockingHit ? HitResult.Distance : 200) >= 175) {
-						LINE(StartRayZPos, StartRayZPos + FVector(0, 0, 200), FColor::Cyan);
-						MantleGoalPos = StartRayZPos + (Fwd * 50) + FVector(0, 0, HeartdoomCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
-						MantleReady = true;
-						break;
-					}*/
 				}
 			}
 		} else if (i >= (MantleReachHeight / 25)) {
@@ -1030,7 +1030,7 @@ bool UHeartdoomCharacterMovementComponent::TryMantle()
 	// Animations
 	TransitionQueuedMontage = MantleMontage;
 	CharacterOwner->PlayAnimMontage(TransitionMantleMontage, 1 / TransitionRMS->Duration);
-	if (IsServer()) Proxy_bMantle = !Proxy_bMantle;
+	if (IsServer()) Multicast_TransitionMantle(1 / TransitionRMS->Duration);
 	UpdatedComponent->SetWorldRotation(FRotator(0, UpdatedComponent->GetComponentRotation().Yaw, UpdatedComponent->GetComponentRotation().Roll));
 	Safe_bWantsToGlide = false;
 	Safe_bWantsToClimb = false;
@@ -1082,11 +1082,20 @@ void UHeartdoomCharacterMovementComponent::PhysClimb(float deltaTime, int32 Iter
 	if (!SurfHit.IsValidBlockingHit() || FloorHit.IsValidBlockingHit())
 	{
 		//--
-		SetMovementMode(MOVE_Walking);
+		if (IsInWater()) //just entered water
+		{
+			SetMovementMode(MOVE_Swimming);
+		}
+		else
+		{
+			SetMovementMode(MOVE_Walking);
+		}
+
 		Safe_bWantsToClimb = false;
 		//--
 		StartNewPhysics(deltaTime, Iterations);
 		return;
+		
 	}
 
 	// Transform Acceleration
@@ -1193,6 +1202,37 @@ void UHeartdoomCharacterMovementComponent::PhysGlide(float deltaTime, int32 Iter
 
 }
 
+void UHeartdoomCharacterMovementComponent::PhysicsVolumeChanged(APhysicsVolume* NewVolume)
+{
+	if (!HasValidData())
+	{
+		return;
+	}
+	if (NewVolume && NewVolume->bWaterVolume)
+	{
+		// just entered water
+		if (CanEverSwim())
+		{
+			if (!IsSwimming())
+			{
+				if(IsSlide())
+				{
+					ExitSlide();
+				}
+				else if(IsGliding())
+				{
+					GlideEnd();
+				}
+				else if(IsClimbing())
+				{
+					ClimbEnd();
+				}
+			}
+		}
+	}
+	Super::PhysicsVolumeChanged(NewVolume);
+}
+
 #pragma region Helpers
 
 bool UHeartdoomCharacterMovementComponent::IsServer() const
@@ -1260,6 +1300,7 @@ void UHeartdoomCharacterMovementComponent::GlideStart()
 
 void UHeartdoomCharacterMovementComponent::GlideEnd()
 {
+	UpdatedComponent->SetWorldRotation(FRotator(0, UpdatedComponent->GetComponentRotation().Yaw, UpdatedComponent->GetComponentRotation().Roll));
 	Safe_bWantsToGlide = false;
 }
 
